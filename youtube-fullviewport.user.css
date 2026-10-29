@@ -1,0 +1,321 @@
+/* ==UserStyle==
+@name         YouTube Full-Viewport Player
+@namespace    local.youtube.fullviewport
+@version      1.7.3
+@description  Theater mode fills the whole viewport; header auto-hides; optional declutter.
+@preprocessor default
+==/UserStyle== */
+
+@-moz-document domain("youtube.com") {
+
+  /* Version marker so you can confirm which copy is live (see console check) */
+  :root { --fv-version: "1.7.3-no-slot-margin"; }
+
+  /* ---------- 1. Full-viewport player (works in default and theater mode) ---------- */
+
+  /* Remove the space reserved for the fixed header so the player starts at y=0 */
+  ytd-page-manager.ytd-app,
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) {
+    --ytd-masthead-height: 0px !important;
+    margin-top: 0 !important;
+  }
+
+  /* The theater container normally caps at ~80vh; lift the cap to 100vh */
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) #full-bleed-container,
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) #player-full-bleed-container {
+    height: 100vh !important;
+    max-height: none !important;
+    min-height: 0 !important;
+  }
+
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) ytd-player,
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) ytd-player #container,
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) #player-container,
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) #movie_player,
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) .html5-video-container {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Fit the video inside the box without cropping (letterbox, not stretch) */
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) video.html5-main-video {
+    width: 100% !important;
+    height: 100% !important;
+    left: 0 !important;
+    top: 0 !important;
+    object-fit: contain;
+  }
+
+  /* Keep the player controls pinned to the bottom of the (now taller) player */
+  ytd-watch-flexy[full-bleed-player]:not([fullscreen]) .ytp-chrome-bottom {
+    width: calc(100% - 24px) !important;
+    left: 12px !important;
+  }
+
+  /* ---------- 1b. Two-column layout (no [full-bleed-player]) ----------
+     Some accounts get the layout where the player lives inside #primary beside
+     the sidebar. Strip the column padding, stack the sidebar under the player,
+     and give the player the full viewport. */
+
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) {
+    --ytd-masthead-height: 0px !important;
+  }
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #columns {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #primary,
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #primary-inner {
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    flex: 0 0 100% !important;
+  }
+  /* Sidebar content (related videos) sits below the player */
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #secondary {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 16px 24px !important;
+    box-sizing: border-box;
+    flex: 0 0 100% !important;
+  }
+  /* Description / Comments rail (#fixed-side-menu).
+     - hidden until you hover the top-right corner
+     - stays visible for as long as a panel is open
+     Opacity-only, no delays or transforms, so it can't lag or get stuck. */
+  #fixed-side-menu {
+    opacity: 0 !important;
+    transition: opacity .15s ease;
+    z-index: 2060;   /* above the open panel so the buttons stay clickable */
+  }
+  /* Frosted, rounded backing so the buttons stay readable over any video */
+  #fixed-side-menu {
+    padding: 0px 6px 8px 0px !important;
+    box-sizing: content-box;
+    border-radius: 8px !important;
+    background: rgba(20, 20, 20, .38) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    backdrop-filter: blur(14px) saturate(1.3);
+    border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .25);
+  }
+  /* Icons only: drop the "Description" / "Comments" text under each button */
+  #fixed-side-menu label > :not(button),
+  #fixed-side-menu .ytSpecButtonShapeWithLabelLabel {
+    display: none !important;
+  }
+  /* With the labels gone, shrink the rail to just the icons: YouTube gives each
+     button slot a fixed height (~80px) sized for icon + text */
+  #fixed-side-menu,
+  #fixed-side-menu yt-side-rail-view-model,
+  #fixed-side-menu .ytSideRailViewModelTablist,
+  #fixed-side-menu toggle-button-view-model,
+  #fixed-side-menu button-view-model,
+  #fixed-side-menu label {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+  /* The leftover 16px per slot is margin/padding made for the label */
+  #fixed-side-menu toggle-button-view-model,
+  #fixed-side-menu button-view-model,
+  #fixed-side-menu label,
+  #fixed-side-menu button {
+    margin: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  #fixed-side-menu .ytSideRailViewModelTablist {
+    display: flex !important;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  /* Generous invisible hover zone around the small 48px rail */
+  #fixed-side-menu::before {
+    content: "";
+    position: absolute;
+    inset: -24px -24px -80px -64px;
+  }
+  #fixed-side-menu:hover,
+  #fixed-side-menu:focus-within,
+  ytd-watch-flexy:has(ytd-engagement-panel-section-list-renderer[visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"]) #fixed-side-menu {
+    opacity: 1 !important;
+  }
+
+  /* With a panel open, park the rail just to its left so it doesn't cover
+     the panel's header (title, X, date) */
+  ytd-watch-flexy:not([fullscreen]):has(ytd-engagement-panel-section-list-renderer[visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"]) #fixed-side-menu {
+    left: auto !important;
+    right: 448px !important;   /* panel width (440px) + 8px gap */
+  }
+
+  /* An open panel floats over the right side of the video (no layout shift)
+     and stays until you close it with its X or the rail button. */
+  ytd-watch-flexy:not([fullscreen]) ytd-engagement-panel-section-list-renderer[visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"] {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 440px !important;
+    max-width: 90vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    z-index: 2050 !important;
+    border-radius: 0 !important;
+  }
+  /* Keep text under the player from touching the screen edge */
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #below {
+    padding: 0 24px;
+    box-sizing: border-box;
+  }
+
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #player,
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #player-container-outer,
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #player-container-inner,
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #player-container,
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) ytd-player,
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) ytd-player #container,
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #movie_player,
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) .html5-video-container {
+    width: 100% !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;   /* kills the "rounded-player" corners */
+  }
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) video.html5-main-video {
+    width: 100% !important;
+    height: 100% !important;
+    left: 0 !important;
+    top: 0 !important;
+    object-fit: contain;
+  }
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) .ytp-chrome-bottom {
+    width: calc(100% - 24px) !important;
+    left: 12px !important;
+  }
+  ytd-watch-flexy:not([full-bleed-player]):not([fullscreen]) #player {
+    background: #000;
+  }
+
+  /* Opening a panel must not resize the page: kill the space YouTube reserves
+     for the sidebar/panel so the player stays full-viewport */
+  ytd-watch-flexy:not([fullscreen]) {
+    --ytd-watch-flexy-sidebar-width: 0px !important;
+    --ytd-watch-flexy-sidebar-min-width: 0px !important;
+    --ytd-watch-flexy-horizontal-page-margin: 0px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  ytd-watch-flexy:not([fullscreen]) #columns,
+  ytd-watch-flexy:not([fullscreen]) #primary,
+  ytd-watch-flexy:not([fullscreen]) #primary-inner,
+  ytd-watch-flexy:not([fullscreen]) #player {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* ---------- 2. Header: hidden until the mouse touches the top edge ---------- */
+
+  /* Whole top bar (logo, search, profile, etc.) on every page.
+     The fixed container stays put as an invisible hover zone; only the bar
+     inside it slides away. Hover-in waits 0.5s, hover-out is instant. */
+  #masthead-container.ytd-app {
+    background: transparent !important;
+  }
+  #masthead-container.ytd-app ytd-masthead {
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform .25s ease 0s, opacity .25s ease 0s;
+  }
+  #masthead-container.ytd-app:hover ytd-masthead,
+  #masthead-container.ytd-app:focus-within ytd-masthead {
+    transform: none;
+    opacity: 1;
+    transition-delay: .5s;   /* the 0.5 second hover delay */
+  }
+
+  /* Content starts at the very top everywhere; the bar overlays when shown */
+  ytd-page-manager.ytd-app {
+    margin-top: 0 !important;
+  }
+
+  /* ---------- 3. QOL: less noise on the player ---------- */
+
+  .ytp-ce-element,                 /* end-screen suggestion tiles */
+  .ytp-endscreen-content,
+  .ytp-cards-teaser,               /* "i" card teasers */
+  .iv-branding,                    /* channel watermark */
+  .ytp-paid-content-overlay,
+  .ytp-pause-overlay,              /* "More videos" strip when paused */
+  .ytp-suggested-action {
+    display: none !important;
+  }
+
+  /* ---------- 4. QOL: page tidy-up ---------- */
+
+  /* Slim, unobtrusive scrollbar */
+  html { scrollbar-width: thin; scrollbar-color: #555 transparent; }
+
+  /* Dark backdrop under a letterboxed video instead of theme grey */
+  ytd-watch-flexy[full-bleed-player] #player-full-bleed-container,
+  ytd-watch-flexy[full-bleed-player] #full-bleed-container {
+    background: #000 !important;
+  }
+
+  /* Thumbnails: lift slightly on hover so the target is obvious */
+  ytd-thumbnail { transition: transform .15s ease; }
+  ytd-thumbnail:hover { transform: scale(1.02); }
+
+  /* ---------- 5. Declutter: no Shorts, less noise ---------- */
+
+  /* Shorts: home/search shelves, sidebar entries, and shorts in channel tabs */
+  ytd-rich-shelf-renderer[is-shorts],
+  ytd-reel-shelf-renderer,
+  ytd-guide-entry-renderer:has(a[title="Shorts"]),
+  ytd-mini-guide-entry-renderer[aria-label="Shorts"],
+  ytd-rich-item-renderer:has(a[href^="/shorts/"]),
+  ytd-video-renderer:has(a[href^="/shorts/"]),
+  ytd-grid-video-renderer:has(a[href^="/shorts/"]),
+  yt-tab-shape[tab-title="Shorts"] {
+    display: none !important;
+  }
+
+  /* Topic filter chips above the home feed and the sidebar's recommendations */
+  ytd-feed-filter-chip-bar-renderer,
+  ytd-watch-flexy #chips-wrapper {
+    display: none !important;
+  }
+
+  /* Promoted / ad-style slots (not a full ad blocker) */
+  ytd-ad-slot-renderer,
+  ytd-banner-promo-renderer,
+  ytd-statement-banner-renderer,
+  #masthead-ad,
+  ytd-in-feed-ad-layout-renderer {
+    display: none !important;
+  }
+
+  /* Playables, mixes-of-the-day and other filler shelves */
+  ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-playables]) {
+    display: none !important;
+  }
+
+}
