@@ -14,7 +14,7 @@ Frosted, distraction-free restyling for the sites you use. Right now it ships on
 
 ## Install (Stylus)
 
-1. Install [Stylus](https://github.com/openstyles/stylus) for your browser. Firefox-based browsers such as Zen work too.
+1. Install [Stylus](https://github.com/openstyles/stylus) for your browser. Firefox-based browsers such as Zen-Browser work too.
 2. Open Stylus and choose **Write new style**.
 3. Select all, paste the contents of `youtube-fullviewport.user.css`, and **Save**.
 4. Hard-refresh YouTube (`Ctrl+Shift+R`).
